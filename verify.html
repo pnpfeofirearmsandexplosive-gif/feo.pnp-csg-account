@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Business Verification</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:linear-gradient(180deg,#4656a7,#5867c2);
+min-height:100vh;
+padding:20px 0 50px;
+}
+
+.wrapper{
+width:390px;
+max-width:95%;
+margin:auto;
+background:#fff;
+border-radius:24px;
+overflow:hidden;
+box-shadow:0 20px 40px rgba(0,0,0,.25);
+}
+
+.top{
+padding:30px 26px;
+background:#f6f7ff;
+}
+
+.verify-title{
+font-size:15px;
+color:#7980a5;
+font-weight:bold;
+margin-bottom:12px;
+}
+
+.control-box{
+background:#eef1ff;
+padding:18px;
+border-radius:22px;
+font-size:18px;
+font-weight:bold;
+color:#4450a0;
+text-align:center;
+margin-bottom:18px;
+}
+
+.address{
+display:flex;
+gap:14px;
+align-items:flex-start;
+color:#4b4f77;
+font-size:14px;
+line-height:1.5;
+font-weight:bold;
+}
+
+.pin{
+font-size:34px;
+}
+
+.section{
+margin:20px;
+border:1px solid #ececec;
+border-radius:22px;
+overflow:hidden;
+background:#fff;
+}
+
+.section-head{
+padding:22px 22px 18px;
+font-size:18px;
+font-weight:bold;
+color:#454d88;
+border-bottom:1px solid #ececec;
+}
+
+.info-row{
+display:flex;
+gap:18px;
+padding:22px;
+align-items:center;
+}
+
+.circle{
+width:74px;
+height:74px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:32px;
+color:#fff;
+flex-shrink:0;
+}
+
+.green{background:#8ee6bb;}
+.blue{background:#9fd4ff;}
+.red{background:#ffb0b0;}
+.purple{background:#b4b7ff;}
+.yellow{background:#f7df78;}
+
+.info-text h3{
+font-size:15px;
+color:#4f5375;
+margin-bottom:6px;
+}
+
+.info-text p{
+font-size:18px;
+font-weight:bold;
+color:#434772;
+}
+
+.footer{
+margin:24px 20px;
+background:#fff;
+border-radius:20px;
+padding:34px 18px;
+text-align:center;
+font-size:15px;
+color:#4c5181;
+box-shadow:0 15px 30px rgba(0,0,0,.08);
+}
+
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+<div class="top">
+
+<div class="verify-title">
+
+</div>
+
+<div class="control-box" id="controlNo">
+LOADING...
+</div>
+
+<div class="address">
+<div class="pin">📍</div>
+
+<div id="addressText">
+LOADING...
+</div>
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+License To Own And Possess Firearms Validity
+</div>
+
+<div class="info-row">
+
+<div class="circle green">
+🪪
+</div>
+
+<div class="info-text">
+<h3>Date Issued:</h3>
+<p id="issuedDate">
+-
+</p>
+</div>
+
+</div>
+
+<div class="info-row">
+
+<div class="circle blue">
+⚖️
+</div>
+
+<div class="info-text">
+<h3>Date Approved:</h3>
+<p id="approvedDate">
+-
+</p>
+</div>
+
+</div>
+
+<div class="info-row">
+
+<div class="circle red">
+❗
+</div>
+
+<div class="info-text">
+<h3>Date Expiry:</h3>
+<p id="expiryDate">
+-
+</p>
+</div>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="section-head">
+License Details
+</div>
+
+<div class="info-row">
+
+<div class="circle purple">
+📞
+</div>
+
+<div class="info-text">
+<h3>Qualification</h3>
+<p id="qualificationText">
+Businessman
+</p>
+</div>
+
+</div>
+
+<div class="info-row">
+
+<div class="circle yellow">
+#️⃣
+</div>
+
+<div class="info-text">
+<h3>Other Licenses</h3>
+<p id="otherLicenseText">
+N/A
+</p>
+</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+Philippine National Police © 2023. All Rights Reserved.
+</div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+
+const firebaseConfig = {
+apiKey:"AIzaSyD592e9TKVm8WnujW0foJ8LhsMAzF3OtzI",
+authDomain:"feo-portal.firebaseapp.com",
+projectId:"feo-portal",
+storageBucket:"feo-portal.firebasestorage.app",
+messagingSenderId:"231610467505",
+appId:"1:231610467505:web:f2f2304bf275d2aaab0e90"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+const params = new URLSearchParams(location.search);
+const uid = params.get("uid");
+
+async function loadVerification(){
+
+if(!uid){
+document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>INVALID QR CODE</h1>";
+return;
+}
+
+const doc = await db.collection("users").doc(uid).get();
+
+if(!doc.exists){
+document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>NO RECORD FOUND</h1>";
+return;
+}
+
+const d = doc.data();
+
+if(d.idStatus !== "RELEASED"){
+document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>LICENSE NOT RELEASED</h1>";
+return;
+}
+
+document.getElementById("controlNo").innerText=d.control||"-";
+document.getElementById("addressText").innerText=d.address||"-";
+
+document.getElementById("issuedDate").innerText=d.examTaken||"-";
+document.getElementById("approvedDate").innerText=d.interviewTaken||"-";
+document.getElementById("expiryDate").innerText=d.expiry||"-";
+
+document.getElementById("qualificationText").innerText=d.role||"Businessman";
+
+}
+
+loadVerification();
+
+</script>
+
+</body>
+</html>
