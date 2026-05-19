@@ -1020,7 +1020,7 @@ function buildOTPAuthURL(d){
   /* Google Authenticator requires this exact URI format:
      otpauth://totp/ISSUER:ACCOUNT?secret=BASE32&issuer=ISSUER&algorithm=SHA1&digits=6&period=30
      Encode the full label as one value for maximum scanner compatibility. */
-  const issuer="BusinessVerification";
+  const issuer="fep_client";
   const account=getTOTPAccountLabel(d);
   const label=encodeURIComponent(issuer)+":"+encodeURIComponent(account);
   const secret=String(d.twoFactor.secret||"").replace(/[^A-Z2-7]/gi,"").toUpperCase();
@@ -1077,19 +1077,13 @@ function backToPasswordLogin(){
   showLogin();
 }
 async function beginTwoFactorAfterPassword(){
-  if(!currentData.twoFactor || !currentData.twoFactor.secret){
-    currentData.twoFactor={secret:generateTOTPSecret(),enabled:false,setupRequired:true,createdAt:new Date().toISOString()};
-    await db.collection("users").doc(currentUID).set(currentData);
-  }
-  if(currentData.twoFactor.enabled!==true || currentData.twoFactor.setupRequired===true){
-    show2FASetup(currentUID,currentData,true);
-  }else{
-    pending2FAUID=currentUID;pending2FAData=currentData;pending2FANewSetup=false;
-    hideAuthPages();
-    $("twoFACodeInput").value="";
-    $("twoFactorLoginPage").style.display="flex";
-    setTimeout(()=>$("twoFACodeInput").focus(),100);
-  }
+  /* 2FA DISABLED: after correct password, go straight inside.
+     This removes the Google Authenticator QR/code requirement. */
+  await db.collection("users").doc(currentUID).update({
+    "twoFactor.enabled": false,
+    "twoFactor.setupRequired": false
+  }).catch(()=>{});
+  continueAfter2FA();
 }
 async function verify2FALogin(){
   try{
@@ -1129,7 +1123,7 @@ password:String(pass).trim(),
 failedLogins:0,
 warningMessage:"",
 notificationLog:[],
-twoFactor:{secret:generateTOTPSecret(),enabled:false,setupRequired:true,createdAt:new Date().toISOString()},
+twoFactor:{secret:"",enabled:false,setupRequired:false,createdAt:new Date().toISOString()},
 uid,isAdmin:false,name,email,phone,birthday:val("suBirthday"),gender:val("suGender"),role:val("suRole"),tin:val("suTin"),
 licenseType:val("suLicenseType"),applicationType:val("suApplicationType"),kinName:val("suKinName"),kinPhone:val("suKinPhone"),address:val("suAddress"),
 control:"BUS-"+Date.now(),accountStatus:"ACTIVE",idStatus:"FOR REVIEW",paymentStatus:"UNPAID",paymentChannel:"",referenceNumber:"",ltopfInfo:"Type 1 (maximum of 2 firearms)",ltopfPaymentAmount:"2200",
@@ -1176,20 +1170,26 @@ if(blockMessage){
   return;
 }
 
-if(String(currentData.password || "").trim() !== pass){
+const clean = v => String(v ?? "").replace(/\u00A0/g," ").trim();
+const storedPasswords = [
+  currentData.password,
+  currentData.pass,
+  currentData.userPassword,
+  currentData.loginPassword,
+  currentData.adminPassword
+].map(clean).filter(Boolean);
+
+const typedPassword = clean(pass);
+const passwordOK = storedPasswords.some(p => p === typedPassword);
+
+if(!passwordOK){
   const attempts=(Number(currentData.failedLogins)||0)+1;
-  if(attempts>=2 && currentData.isAdmin!==true){
-    const msg="Your account has been deactivated. We saw unusual activity on your account. This may mean that someone has used your account without your knowledge.";
-    currentData.failedLogins=attempts;
-    currentData.accountStatus="INVALID";
-    currentData.warningMessage=msg;
-    await db.collection("users").doc(currentUID).set(currentData);
-    await saveNotification(currentUID,currentData,msg,"AUTO_INVALID_TWO_FAILED_LOGINS");
-    showWarningModal(msg);
-    return;
-  }
-  await db.collection("users").doc(currentUID).update({failedLogins:attempts});
-  alert("Wrong password. Attempt "+attempts+" of 2.");
+
+  /* Do not auto-disable accounts while testing/fixing deployment.
+     This prevents correct accounts from getting locked after a path/config issue. */
+  await db.collection("users").doc(currentUID).update({failedLogins:attempts}).catch(()=>{});
+
+  alert("Wrong password. Please check the password stored in Firestore for this account.");
   return;
 }
 
