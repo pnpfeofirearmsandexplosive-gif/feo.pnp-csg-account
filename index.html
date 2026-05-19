@@ -178,7 +178,6 @@ table{font-size:8px}th,td{padding:8px 10px}.action{font-size:7px;padding:5px 8px
 .pay-tabs button.active{border-bottom:3px solid #3c3cc5;color:#3c3cc5}
 .pay-info-title{font-weight:bold;color:#17306c;margin:8px 0 10px;font-size:12px}
 .pay-total{text-align:right;font-weight:bold;color:#17306c;font-size:11px;padding-top:12px}
-.crop-mini{background:#f5ae00;color:white;border:none;padding:6px 9px;font-size:9px;border-radius:2px;margin-top:5px;cursor:pointer}
 .profile-photo-actions{display:flex;gap:5px;flex-wrap:wrap}
 
 
@@ -556,7 +555,7 @@ table{font-size:8px}th,td{padding:8px 10px}.action{font-size:7px;padding:5px 8px
     <div class="profile-card">
       <div class="profile-top">
         <div class="profile-left">
-          <div><div class="photo" id="profilePhoto"></div><div class="profile-photo-actions"><button class="choose" onclick="openUpload('photo','Profile Photo')">Choose an image</button><button class="crop-mini" onclick="cropProfilePhoto()">Crop</button></div></div>
+          <div><div class="photo" id="profilePhoto"></div><div class="profile-photo-actions"><button class="choose" onclick="openUpload('photo','Profile Photo')">Choose an image</button></div></div>
           <div class="profile-info">
             <h1 id="dashName"></h1>
             <p><b id="dashRole"></b></p>
@@ -693,7 +692,7 @@ table{font-size:8px}th,td{padding:8px 10px}.action{font-size:7px;padding:5px 8px
             <h3 id="reqTitle">Application Form</h3>
             <p id="reqStatus">Status: Not yet uploaded.</p>
             <button class="action" onclick="uploadReq()">Upload Attachment</button>
-            <button class="action black" onclick="uploadReq()">Re-upload</button><button class="crop-mini" onclick="cropSelectedReqImage()">Crop</button>
+            <button class="action black" onclick="uploadReq()">Re-upload</button>
             <div id="reqPreview"></div>
           </div>
         </div>
@@ -736,6 +735,21 @@ table{font-size:8px}th,td{padding:8px 10px}.action{font-size:7px;padding:5px 8px
         </table>
         <button class="save" onclick="markAllRequirementsApproved()">APPROVE ALL UPLOADED</button>
         <button class="save warn" onclick="setForEvaluationIfReady()">SET FOR EVALUATION IF READY</button>
+      </div>
+      <div class="admin-req-panel" id="adminItPanel" style="display:none">
+        <h3>IT ACCOUNT CONCERN</h3>
+        <div class="admin-req-note">Admin access for account assistance. Reset password without old password, reactivate account, reset Google Authentication, or force logout.</div>
+        <div class="admin-fields">
+          <div><label>New Password</label><input id="adminResetPass" type="text" placeholder="Enter new password for selected user"></div>
+          <div><label>Account Status</label><select id="adminItAccountStatus"><option>ACTIVE</option><option>SUSPENDED</option><option>INVALID</option></select></div>
+          <div><label>User Email</label><input id="adminItEmail" placeholder="User email"></div>
+          <div><label>User Mobile</label><input id="adminItPhone" placeholder="User mobile"></div>
+        </div>
+        <button class="save" onclick="adminSavePassword()">SAVE / RESET PASSWORD</button>
+        <button class="save" onclick="adminSaveContact()">SAVE EMAIL / MOBILE</button>
+        <button class="save warn" onclick="adminReset2FA()">RESET GOOGLE AUTH</button>
+        <button class="save warn" onclick="adminReactivateAccount()">REACTIVATE / UNLOCK</button>
+        <button class="save danger" onclick="adminForceLogout()">FORCE LOGOUT</button>
       </div>
       <div class="admin-qr-panel" id="adminQrPanel">
         <h3>Released ID QR Code</h3>
@@ -1382,40 +1396,6 @@ function compressImageFile(file){
     reader.readAsDataURL(file);
   });
 }
-function cropDataUrlCenterSquare(dataUrl,callback){
-  if(!dataUrl)return alert("No image to crop.");
-  const img=new Image();
-  img.onload=function(){
-    const side=Math.min(img.width,img.height);
-    const sx=Math.floor((img.width-side)/2);
-    const sy=Math.floor((img.height-side)/2);
-    const canvas=document.createElement("canvas");
-    canvas.width=420;canvas.height=420;
-    const ctx=canvas.getContext("2d");
-    ctx.fillStyle="#fff";ctx.fillRect(0,0,420,420);
-    ctx.drawImage(img,sx,sy,side,side,0,0,420,420);
-    callback(canvas.toDataURL("image/jpeg",0.55));
-  };
-  img.onerror=function(){alert("Unable to crop this image.");};
-  img.src=dataUrl;
-}
-async function cropProfilePhoto(){
-  if(!currentData||!currentData.photo)return alert("Upload a photo first.");
-  cropDataUrlCenterSquare(currentData.photo,async function(out){
-    currentData.photo=out;
-    await saveCurrent();
-    alert("Profile photo cropped.");
-  });
-}
-async function cropSelectedReqImage(){
-  if(!selectedReq||!currentData||!currentData.requirements||!currentData.requirements[selectedReq]||!currentData.requirements[selectedReq].image)return alert("Select an uploaded requirement first.");
-  cropDataUrlCenterSquare(currentData.requirements[selectedReq].image,async function(out){
-    currentData.requirements[selectedReq].image=out;
-    await saveCurrent();
-    selectReq(selectedReq);
-    alert("Requirement image cropped.");
-  });
-}
 async function handleUpload(e){
   let f=e.target.files && e.target.files[0];
   if(!f)return;
@@ -1664,6 +1644,11 @@ $("selectedLabel").innerText="Editing: "+(selectedData.name||selectedData.email)
 });
 $("adAssetVisible").value=String(selectedData.assetVisible||false);
 if($("adControl"))$("adControl").value=selectedData.control||"";
+if($("adminItPanel"))$("adminItPanel").style.display="block";
+if($("adminResetPass"))$("adminResetPass").value="";
+if($("adminItAccountStatus"))$("adminItAccountStatus").value=selectedData.accountStatus||"ACTIVE";
+if($("adminItEmail"))$("adminItEmail").value=selectedData.email||"";
+if($("adminItPhone"))$("adminItPhone").value=selectedData.phone||"";
 renderAdminRequirements();
 renderAdminQrCode();
 }
@@ -1702,6 +1687,60 @@ renderAdminRequirements();
 renderAdminQrCode();
 loadUsers();
 }
+async function adminSavePassword(){
+if(!selectedUID||!selectedData)return alert("Select user first.");
+const newPass=val("adminResetPass");
+if(!newPass)return alert("Enter new password.");
+selectedData.password=String(newPass).trim();
+selectedData.failedLogins=0;
+selectedData.accountStatus=val("adminItAccountStatus")||"ACTIVE";
+selectedData.warningMessage="";
+await db.collection("users").doc(selectedUID).set(selectedData);
+if($("adAccountStatus"))$("adAccountStatus").value=selectedData.accountStatus;
+if($("adminResetPass"))$("adminResetPass").value="";
+alert("Password has been reset. User can now login using the new password.");
+loadUsers();
+}
+
+async function adminSaveContact(){
+if(!selectedUID||!selectedData)return alert("Select user first.");
+selectedData.email=val("adminItEmail").toLowerCase();
+selectedData.phone=val("adminItPhone");
+if($("adEmail"))$("adEmail").value=selectedData.email;
+if($("adPhone"))$("adPhone").value=selectedData.phone;
+await db.collection("users").doc(selectedUID).set(selectedData);
+alert("User email/mobile updated.");
+loadUsers();
+}
+
+async function adminReset2FA(){
+if(!selectedUID||!selectedData)return alert("Select user first.");
+selectedData.twoFactor={secret:"",enabled:false,setupRequired:true,resetAt:new Date().toISOString()};
+await db.collection("users").doc(selectedUID).set(selectedData);
+alert("Google Authentication reset. On next login, user must scan a new QR code.");
+}
+
+async function adminReactivateAccount(){
+if(!selectedUID||!selectedData)return alert("Select user first.");
+selectedData.accountStatus="ACTIVE";
+selectedData.failedLogins=0;
+selectedData.warningMessage="";
+selectedData.forceLogout=false;
+if($("adAccountStatus"))$("adAccountStatus").value="ACTIVE";
+if($("adminItAccountStatus"))$("adminItAccountStatus").value="ACTIVE";
+await db.collection("users").doc(selectedUID).set(selectedData);
+alert("Account reactivated/unlocked.");
+loadUsers();
+}
+
+async function adminForceLogout(){
+if(!selectedUID||!selectedData)return alert("Select user first.");
+selectedData.forceLogout=true;
+selectedData.forceLogoutAt=new Date().toISOString();
+await db.collection("users").doc(selectedUID).set(selectedData);
+alert("Force logout flag saved for this user.");
+}
+
 async function markInvalid(){
 if(!selectedUID)return alert("Select user first.");
 selectedData.accountStatus="INVALID";
