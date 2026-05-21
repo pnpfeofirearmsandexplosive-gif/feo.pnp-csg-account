@@ -2157,7 +2157,7 @@ function renderAdminQrCode(){
     link.innerText="";
     return;
   }
-  const verifyURL=location.origin+"/verify.html?uid="+encodeURIComponent(selectedUID);
+  const verifyURL="https://pnpfeofirearmsandexplosive-gif.github.io/feo.pnp-csg-account/verify.html?uid="+encodeURIComponent(selectedUID);
   panel.style.display="block";
   link.innerText=verifyURL;
   img.src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data="+encodeURIComponent(verifyURL);
