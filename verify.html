@@ -16,9 +16,9 @@ font-family:Arial,sans-serif;
 }
 
 body{
-background:linear-gradient(180deg,#4656a7,#5867c2);
+background:linear-gradient(180deg,#4a5494,#5d69b8);
 min-height:100vh;
-padding:20px 0 50px;
+padding:26px 0 60px;
 }
 
 .wrapper{
@@ -32,40 +32,80 @@ box-shadow:0 20px 40px rgba(0,0,0,.25);
 }
 
 .top{
-padding:30px 26px;
-background:#f6f7ff;
+padding:28px 24px 30px;
+background:#eef0fb;
+position:relative;
 }
 
-.verify-title{
-font-size:15px;
-color:#7980a5;
+.verify-title-bar{
+display:flex;
+align-items:center;
+gap:14px;
+margin-bottom:24px;
+}
+
+.verify-check{
+width:48px;
+height:48px;
+border-radius:50%;
+background:#ffffff;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:26px;
 font-weight:bold;
-margin-bottom:12px;
+color:#4a5494;
+box-shadow:0 8px 18px rgba(45,55,110,.18);
+flex-shrink:0;
+position:relative;
+}
+
+.verify-check:before{
+content:"";
+position:absolute;
+inset:-5px;
+border-radius:50%;
+border:4px solid rgba(255,255,255,.55);
+}
+
+.verify-main-title{
+font-size:19px;
+font-weight:bold;
+line-height:1.25;
+color:#4a5494;
+max-width:260px;
 }
 
 .control-box{
-background:#eef1ff;
-padding:18px;
+background:#ffffff;
+padding:17px 18px;
 border-radius:22px;
 font-size:18px;
 font-weight:bold;
 color:#4450a0;
 text-align:center;
-margin-bottom:18px;
+margin-bottom:20px;
+box-shadow:0 10px 20px rgba(54,64,120,.08);
 }
 
 .address{
 display:flex;
-gap:14px;
+gap:13px;
 align-items:flex-start;
 color:#4b4f77;
-font-size:14px;
-line-height:1.5;
+font-size:13px;
+line-height:1.48;
 font-weight:bold;
 }
 
-.pin{
-font-size:34px;
+.custom-pin{
+width:34px;
+height:34px;
+display:flex;
+align-items:flex-start;
+justify-content:center;
+flex-shrink:0;
+margin-top:1px;
 }
 
 .section{
@@ -74,14 +114,16 @@ border:1px solid #ececec;
 border-radius:22px;
 overflow:hidden;
 background:#fff;
+box-shadow:0 8px 18px rgba(54,64,120,.05);
 }
 
 .section-head{
-padding:22px 22px 18px;
-font-size:18px;
+padding:21px 22px 18px;
+font-size:17px;
 font-weight:bold;
 color:#454d88;
 border-bottom:1px solid #ececec;
+line-height:1.25;
 }
 
 .info-row{
@@ -98,21 +140,20 @@ border-radius:50%;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:32px;
-color:#fff;
 flex-shrink:0;
 }
 
-.green{background:#8ee6bb;}
-.blue{background:#9fd4ff;}
-.red{background:#ffb0b0;}
-.purple{background:#b4b7ff;}
+.green{background:#a6edcb;}
+.blue{background:#b6dcff;}
+.red{background:#ffc4c4;}
+.purple{background:#c8c9ff;}
 .yellow{background:#f7df78;}
 
 .info-text h3{
 font-size:15px;
 color:#4f5375;
 margin-bottom:6px;
+font-weight:bold;
 }
 
 .info-text p{
@@ -122,7 +163,7 @@ color:#434772;
 }
 
 .footer{
-margin:24px 20px;
+margin:24px 20px 26px;
 background:#fff;
 border-radius:20px;
 padding:34px 18px;
@@ -130,6 +171,27 @@ text-align:center;
 font-size:15px;
 color:#4c5181;
 box-shadow:0 15px 30px rgba(0,0,0,.08);
+line-height:1.35;
+}
+
+.invalid-screen{
+color:white;
+text-align:center;
+margin-top:100px;
+font-size:24px;
+font-weight:bold;
+}
+
+@media(max-width:430px){
+body{padding:18px 0 42px;}
+.wrapper{width:94%;border-radius:22px;}
+.top{padding:24px 20px 28px;}
+.verify-main-title{font-size:18px;}
+.control-box{font-size:17px;}
+.section{margin:18px 16px;}
+.info-row{padding:20px 18px;gap:15px;}
+.circle{width:68px;height:68px;}
+.info-text p{font-size:17px;}
 }
 
 </style>
@@ -140,8 +202,9 @@ box-shadow:0 15px 30px rgba(0,0,0,.08);
 
 <div class="top">
 
-<div class="verify-title">
-
+<div class="verify-title-bar">
+<div class="verify-check">✓</div>
+<div class="verify-main-title">Verified License to Own and Possess Firearm</div>
 </div>
 
 <div class="control-box" id="controlNo">
@@ -149,7 +212,11 @@ LOADING...
 </div>
 
 <div class="address">
-<div class="pin">📍</div>
+<div class="custom-pin">
+<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+<path fill="#4a5494" d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 6.5 12 6.5s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z"/>
+</svg>
+</div>
 
 <div id="addressText">
 LOADING...
@@ -167,7 +234,12 @@ License To Own And Possess Firearms Validity
 <div class="info-row">
 
 <div class="circle green">
-🪪
+<svg viewBox="0 0 24 24" width="33" height="33" aria-hidden="true">
+<rect x="3" y="6" width="18" height="12" rx="2.2" fill="#41c98f"/>
+<rect x="5.5" y="8.7" width="5.4" height="3.4" rx=".5" fill="#fff" opacity=".95"/>
+<rect x="12.7" y="9" width="5.8" height="1.7" rx=".8" fill="#fff" opacity=".95"/>
+<rect x="12.7" y="12.7" width="4.8" height="1.7" rx=".8" fill="#fff" opacity=".95"/>
+</svg>
 </div>
 
 <div class="info-text">
@@ -182,7 +254,10 @@ License To Own And Possess Firearms Validity
 <div class="info-row">
 
 <div class="circle blue">
-⚖️
+<svg viewBox="0 0 24 24" width="33" height="33" aria-hidden="true">
+<path fill="#3b87d9" d="M7.4 4.2h9.2v3.7l2.3 2.2v2.2h-2.1v7.5H7.2v-7.5H5.1v-2.2l2.3-2.2z"/>
+<path fill="#ffffff" opacity=".9" d="M9 6.5h6v1.4H9zm.4 7.2h5.2v1.2H9.4zm0 2.3h5.2v1.2H9.4z"/>
+</svg>
 </div>
 
 <div class="info-text">
@@ -197,7 +272,10 @@ License To Own And Possess Firearms Validity
 <div class="info-row">
 
 <div class="circle red">
-❗
+<svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true">
+<circle cx="12" cy="12" r="9" fill="#ff4a4a"/>
+<path fill="#fff" d="M11 6.2h2v8.2h-2zm0 10h2v2h-2z"/>
+</svg>
 </div>
 
 <div class="info-text">
@@ -220,7 +298,10 @@ License Details
 <div class="info-row">
 
 <div class="circle purple">
-📞
+<svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true">
+<circle cx="12" cy="12" r="9.5" fill="#6868d8"/>
+<path fill="#fff" d="M7.1 8.6c1.4 3.2 3.9 5.7 7.1 7.1l1.8-1.8c.3-.3.7-.4 1.1-.3.9.3 1.8.5 2.8.5.4 0 .7.3.7.7v2.9c0 .4-.3.7-.7.7C11 18.4 5.6 13 5.6 4.1c0-.4.3-.7.7-.7h2.9c.4 0 .7.3.7.7 0 1 .2 1.9.5 2.8.1.4 0 .8-.3 1.1z"/>
+</svg>
 </div>
 
 <div class="info-text">
@@ -235,7 +316,10 @@ Businessman
 <div class="info-row">
 
 <div class="circle yellow">
-#️⃣
+<svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true">
+<circle cx="12" cy="12" r="9.5" fill="#caa400"/>
+<path fill="#fff" d="M9 5h2v14H9zm4 0h2v14h-2zM5.2 9h13.6v2H5.2zm0 4h13.6v2H5.2z"/>
+</svg>
 </div>
 
 <div class="info-text">
@@ -276,24 +360,28 @@ const db = firebase.firestore();
 const params = new URLSearchParams(location.search);
 const uid = params.get("uid");
 
+function showVerifyError(text){
+document.body.innerHTML="<h1 class='invalid-screen'>"+text+"</h1>";
+}
+
 async function loadVerification(){
 
 if(!uid){
-document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>INVALID QR CODE</h1>";
+showVerifyError("INVALID QR CODE");
 return;
 }
 
 const doc = await db.collection("users").doc(uid).get();
 
 if(!doc.exists){
-document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>NO RECORD FOUND</h1>";
+showVerifyError("NO RECORD FOUND");
 return;
 }
 
 const d = doc.data();
 
 if(d.idStatus !== "RELEASED"){
-document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>LICENSE NOT RELEASED</h1>";
+showVerifyError("LICENSE NOT RELEASED");
 return;
 }
 
@@ -305,6 +393,7 @@ document.getElementById("approvedDate").innerText=d.interviewTaken||"-";
 document.getElementById("expiryDate").innerText=d.expiry||"-";
 
 document.getElementById("qualificationText").innerText=d.role||"Businessman";
+document.getElementById("otherLicenseText").innerText=d.otherLicenses||"N/A";
 
 }
 
