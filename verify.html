@@ -7,6 +7,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
 body{background:linear-gradient(180deg,#46527f 0%,#4c5a98 45%,#5363b4 100%);min-height:100vh;padding:20px 0 50px;color:#3f4778}
+body.firearm-mode{background:linear-gradient(180deg,#ef544f 0%,#f25f56 48%,#ee7357 100%)}
 .verify-title-bar{width:390px;max-width:95%;margin:0 auto 12px;display:flex;align-items:flex-start;gap:10px;color:white}
 .verify-check{width:27px;height:27px;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:bold;color:white;line-height:1;flex-shrink:0;margin-top:4px}
 .verify-main-title{font-size:28px;font-weight:700;line-height:1.35;color:white;letter-spacing:.2px;text-shadow:0 1px 1px rgba(0,0,0,.08)}
@@ -28,12 +29,19 @@ body{background:linear-gradient(180deg,#46527f 0%,#4c5a98 45%,#5363b4 100%);min-
 .info-text p.strong{font-weight:bold}
 .details .section-body{padding:0}
 .details .info-row{padding:22px;min-height:62px}
+.firearm-section{display:none}
+.firearm-table-wrap{padding:0 0 2px;overflow-x:auto}
+.firearm-table{width:100%;border-collapse:collapse;font-size:13px;color:#3f4778}
+.firearm-table th{background:#eef3ff;color:#3f4778;font-weight:bold;text-align:left;padding:13px 10px;border:1px solid #eaedf4;white-space:nowrap}
+.firearm-table td{padding:13px 10px;border:1px solid #eaedf4;white-space:nowrap;color:#3f4778}
+.firearm-table tr:nth-child(even){background:#f7f8ff}
+@media(max-width:430px){.firearm-table{font-size:12px}.firearm-table th,.firearm-table td{padding:11px 8px}}
 .footer{width:390px;max-width:95%;margin:24px auto 0;background:#f7f8ff;border-radius:20px;padding:34px 18px;text-align:center;font-size:15px;line-height:1.25;color:#4c5181;box-shadow:0 15px 30px rgba(0,0,0,.08)}
 @media(max-width:430px){body{padding:20px 0 50px}.verify-title-bar,.wrapper,.footer{width:calc(100% - 20px);max-width:390px}.verify-main-title{font-size:26px}.top{padding:31px 25px 34px}.section{margin-left:18px;margin-right:18px}.control-box{margin-left:10px;font-size:15px;padding:10px 22px}.address{font-size:14px}.section-head{font-size:18px}.info-row{gap:16px}.circle{width:48px;height:48px}.info-text h3{font-size:15px}.info-text p{font-size:16px}}
 </style>
 </head>
 <body>
-<div class="verify-title-bar"><div class="verify-check">✓</div><div class="verify-main-title">Verified License to Own and Possess Firearm</div></div>
+<div class="verify-title-bar"><div class="verify-check">✓</div><div class="verify-main-title" id="verifyMainTitle">Verified License to Own and Possess Firearm</div></div>
 <div class="wrapper">
 <div class="top">
 <div class="control-box" id="controlNo">LOADING...</div>
@@ -43,7 +51,7 @@ body{background:linear-gradient(180deg,#46527f 0%,#4c5a98 45%,#5363b4 100%);min-
 <div class="help-icon"><span>?</span></div>
 </div>
 </div>
-<div class="section"><div class="section-head">License To Own And Possess Firearms Validity</div><div class="section-body">
+<div class="section"><div class="section-head" id="validitySectionTitle">License To Own And Possess Firearms Validity</div><div class="section-body">
 <div class="info-row"><div class="circle green"><svg viewBox="0 0 24 24" width="25" height="25"><rect x="3.5" y="6.5" width="17" height="11" rx="1.6" fill="#47c58d"/><rect x="6" y="9" width="5" height="5" rx=".5" fill="#9ee9bf"/><rect x="12.5" y="9" width="5.5" height="1.8" fill="#9ee9bf"/><rect x="12.5" y="12.5" width="4.5" height="1.8" fill="#9ee9bf"/></svg></div><div class="info-text"><h3>Date Issued:</h3><p id="issuedDate">-</p></div></div>
 <div class="info-row"><div class="circle blue"><svg viewBox="0 0 24 24" width="25" height="25"><g fill="#4998e3" transform="rotate(-38 12 12)"><rect x="6" y="5" width="10" height="4" rx="1"/><rect x="8" y="9" width="6" height="3" rx=".8"/><rect x="10" y="11" width="4" height="8" rx="1"/><rect x="7" y="18" width="10" height="2.2" rx="1"/></g></svg></div><div class="info-text"><h3>Date Approved:</h3><p id="approvedDate">-</p></div></div>
 <div class="info-row"><div class="circle red"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="12" r="9" fill="#f05b56"/><rect x="10.8" y="6.2" width="2.4" height="8.5" rx="1" fill="#ffaaaa"/><circle cx="12" cy="17.4" r="1.35" fill="#ffaaaa"/></svg></div><div class="info-text"><h3>Date Expiry:</h3><p id="expiryDate">-</p></div></div>
@@ -52,15 +60,22 @@ body{background:linear-gradient(180deg,#46527f 0%,#4c5a98 45%,#5363b4 100%);min-
 <div class="info-row"><div class="circle purple"><svg viewBox="0 0 24 24" width="25" height="25"><path fill="#615fd2" d="M6.45 4.2l2.7-.7 2.35 4.45-1.55 1.6c1.05 2.05 2.45 3.45 4.5 4.5l1.6-1.55 4.45 2.35-.7 2.7c-.25 1-1.15 1.65-2.15 1.5C10.7 18.1 5.9 13.3 4.95 6.35c-.15-1 .5-1.9 1.5-2.15z"/></svg></div><div class="info-text"><h3>Qualification</h3><p class="strong" id="qualificationText">Businessman</p></div></div>
 <div class="info-row"><div class="circle yellow"><svg viewBox="0 0 24 24" width="25" height="25"><path fill="#d3ad1b" d="M8.2 4h2.2l-.7 4h4.1l.7-4h2.2l-.7 4H20v2h-4.35l-.7 4H19v2h-4.4l-.7 4h-2.2l.7-4H8.3l-.7 4H5.4l.7-4H2v-2h4.45l.7-4H3V8h4.5l.7-4zm1.15 6l-.7 4h4.1l.7-4h-4.1z"/></svg></div><div class="info-text"><h3>Other Licenses</h3><p class="strong" id="otherLicenseText">N/A</p></div></div>
 </div></div>
+<div class="section firearm-section" id="firearmSection"><div class="section-head">Firearm/S Details</div><div class="section-body">
+<div class="firearm-table-wrap"><table class="firearm-table"><thead><tr><th>Serial Number</th><th>Caliber</th><th>Model</th><th>Make</th><th>Kind</th></tr></thead><tbody><tr><td id="firearmSerialText">-</td><td id="firearmCaliberText">-</td><td id="firearmModelText">-</td><td id="firearmMakeText">-</td><td id="firearmKindText">-</td></tr></tbody></table></div>
+</div></div>
 </div>
 <div class="footer">Philippine National Police © 2023. All Rights Reserved.</div>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script>
 const firebaseConfig={apiKey:"AIzaSyD592e9TKVm8WnujW0foJ8LhsMAzF3OtzI",authDomain:"feo-portal.firebaseapp.com",projectId:"feo-portal",storageBucket:"feo-portal.firebasestorage.app",messagingSenderId:"231610467505",appId:"1:231610467505:web:f2f2304bf275d2aaab0e90"};
-firebase.initializeApp(firebaseConfig);const db=firebase.firestore();const params=new URLSearchParams(location.search);const uid=params.get("uid");
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore();const params=new URLSearchParams(location.search);const uid=params.get("uid");const verifyType=(params.get("type")||params.get("mode")||params.get("verify")||"ltopf").toLowerCase();const isFirearmQR=verifyType.includes("firearm");
 function formatDate(v){if(!v)return "-"; if(/^[A-Za-z]+\s+\d{1,2},\s+\d{4}$/.test(v))return v; const d=new Date(v); if(isNaN(d.getTime()))return v; return d.toLocaleDateString("en-US",{month:"long",day:"2-digit",year:"numeric"});}
-async function loadVerification(){if(!uid){document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>INVALID QR CODE</h1>";return;} const doc=await db.collection("users").doc(uid).get(); if(!doc.exists){document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>NO RECORD FOUND</h1>";return;} const d=doc.data(); if(d.idStatus!=="RELEASED"){document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>LICENSE NOT RELEASED</h1>";return;} document.getElementById("controlNo").innerText=d.control||"-"; document.getElementById("addressText").innerText=d.address||"-"; document.getElementById("issuedDate").innerText=formatDate(d.examTaken); document.getElementById("approvedDate").innerText=formatDate(d.interviewTaken); document.getElementById("expiryDate").innerText=formatDate(d.expiry); document.getElementById("qualificationText").innerText=d.role||d.qualification||"Others"; document.getElementById("otherLicenseText").innerText=d.otherLicenses||"N/A";}
+function pick(){for(let i=0;i<arguments.length;i++){if(arguments[i]!==undefined&&arguments[i]!==null&&String(arguments[i]).trim()!=="")return arguments[i];}return "-";}
+async function loadVerification(){if(!uid){document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>INVALID QR CODE</h1>";return;} const doc=await db.collection("users").doc(uid).get(); if(!doc.exists){document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>NO RECORD FOUND</h1>";return;} const d=doc.data(); if(d.idStatus!=="RELEASED"){document.body.innerHTML="<h1 style='color:white;text-align:center;margin-top:100px;'>LICENSE NOT RELEASED</h1>";return;}
+if(isFirearmQR){document.body.classList.add("firearm-mode");document.getElementById("verifyMainTitle").innerText="Verified Firearm License";document.getElementById("validitySectionTitle").innerText="Firearm License Validity";document.getElementById("firearmSection").style.display="block";}
+document.getElementById("controlNo").innerText=isFirearmQR?pick(d.firearmReferenceNumber,d.control):pick(d.control); document.getElementById("addressText").innerText=pick(d.address); document.getElementById("issuedDate").innerText=formatDate(isFirearmQR?pick(d.firearmDateIssued,d.firearmDateCreated,d.examTaken):d.examTaken); document.getElementById("approvedDate").innerText=formatDate(isFirearmQR?pick(d.firearmDateApproved,d.interviewTaken):d.interviewTaken); document.getElementById("expiryDate").innerText=formatDate(isFirearmQR?pick(d.firearmExpiry,d.expiry):d.expiry); document.getElementById("qualificationText").innerText=pick(d.role,d.qualification,"Others"); document.getElementById("otherLicenseText").innerText=pick(d.otherLicenses,"N/A");
+if(isFirearmQR){document.getElementById("firearmSerialText").innerText=pick(d.firearmSerial,d.serialNumber);document.getElementById("firearmCaliberText").innerText=pick(d.firearmCaliber,d.caliber);document.getElementById("firearmModelText").innerText=pick(d.firearmModel,d.model,d.assetInfo);document.getElementById("firearmMakeText").innerText=pick(d.firearmMake,d.make);document.getElementById("firearmKindText").innerText=pick(d.firearmKind,d.kind,d.firearmType);}}
 loadVerification();
 </script>
 </body>
