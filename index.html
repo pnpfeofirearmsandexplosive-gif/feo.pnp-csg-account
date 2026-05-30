@@ -1515,13 +1515,33 @@ function backToPasswordLogin(){
   showLogin();
 }
 async function beginTwoFactorAfterPassword(){
-  /* 2FA DISABLED: after correct password, go straight inside.
-     This removes the Google Authenticator QR/code requirement. */
-  await db.collection("users").doc(currentUID).update({
-    "twoFactor.enabled": false,
-    "twoFactor.setupRequired": false
-  }).catch(()=>{});
-  continueAfter2FA();
+  /* EVERY LOGIN MUST PASS GOOGLE AUTHENTICATOR FIRST.
+     If an older account has no Authenticator secret yet, show the setup QR once
+     instead of throwing an error. Accounts with a saved secret go straight to
+     the 6-digit code page every login. */
+  if(!currentData.twoFactor) currentData.twoFactor = {};
+
+  const savedSecret = String(currentData.twoFactor.secret || "").replace(/[^A-Z2-7]/gi,"").toUpperCase();
+
+  if(!savedSecret){
+    currentData.twoFactor.secret = generateTOTPSecret();
+    currentData.twoFactor.enabled = false;
+    currentData.twoFactor.setupRequired = true;
+    currentData.twoFactor.createdAt = currentData.twoFactor.createdAt || new Date().toISOString();
+    await db.collection("users").doc(currentUID).set(currentData,{merge:true}).catch(()=>{});
+    show2FASetup(currentUID,currentData,false);
+    return;
+  }
+
+  currentData.twoFactor.secret = savedSecret;
+  pending2FAUID = currentUID;
+  pending2FAData = currentData;
+  pending2FANewSetup = false;
+
+  hideAuthPages();
+  if($("twoFACodeInput")) $("twoFACodeInput").value = "";
+  setPageDisplay("twoFactorLoginPage","flex",true);
+  setTimeout(()=>{ if($("twoFACodeInput")) $("twoFACodeInput").focus(); },100);
 }
 async function verify2FALogin(){
   try{
@@ -1635,6 +1655,15 @@ if(!passwordOK){
 if(Number(currentData.failedLogins||0)>0){
   currentData.failedLogins=0;
   await db.collection("users").doc(currentUID).update({failedLogins:0});
+}
+
+/* ADMIN BYPASS ONLY:
+   Admin account should not be required to enter Google Authenticator code.
+   Regular users will still continue to the 2FA flow below.
+*/
+if(currentData.isAdmin === true || clean(currentData.email).toLowerCase() === clean(ADMIN_EMAIL).toLowerCase()){
+  await showAdmin();
+  return;
 }
 
 await beginTwoFactorAfterPassword();
